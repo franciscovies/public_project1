@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+	html, body {
+		height: 100%;
+	}
+	table {
+		border: solid 1px #CCC;
+	}
+	td {
+		border-left: solid 1px #CCC;
+		overflow: hidden;
+	}
+	.strip {
+		background: #f2f9fe;
+		background: -moz-linear-gradient(top, #f2f9fe 0%, #effeff 100%);
+		background: -webkit-linear-gradient(top, #f2f9fe 0%,#effeff 100%);
+		background: linear-gradient(to bottom, #f2f9fe 0%,#effeff 100%);
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f2f9fe', endColorstr='#effeff',GradientType=0 );
+	}
+	.day {
+		padding:0 !important;
+	}
+	.day div {
+		background-repeat: repeat-x;
+		background-image: url(bar.png);
+		height: 36px;
+		width: 100%;
+	}
+  </style>
+</head>
+<body>
+
+<div class="container">
+	<h2>Gantt Project</h2>
+	<p>This is an example built with bootstrap and its own js and css</p>
+  
+	<div style="width:400px; overflow: auto" id="gantt">
+	</div>  
+	
+	<script>
+	
+		var gantt = [
+					{
+						title: 'Task 1',
+						start: '2016-12-01',
+						end: '2016-12-03'
+					},
+					{
+						title: 'Task 2',
+						start: '2016-12-07',
+						end: '2016-12-10'
+					},
+					{
+						title: 'Task 3',
+						start: '2016-12-11',
+						end: '2016-12-17'
+					},						
+					{
+						title: 'Task 4',
+						start: '2016-12-21',
+						end: '2017-1-7'
+					},					
+				]
+		
+		function fec(fec) {
+			nf = fec.split('-');
+			fsal = new Date(parseInt(nf[0]), parseInt(nf[1])-1, parseInt(nf[2]));
+			return fsal;
+		}
+		function mes(mes) {
+			switch(mes) {
+				case 0: return 'Enero';
+				case 1: return 'Febrero';
+				case 2: return 'Marzo';
+				case 3: return 'Abril';
+				case 4: return 'Mayo';
+				case 5: return 'Junio';
+				case 6: return 'Julio';
+				case 7: return 'Agosto';
+				case 8: return 'Septiembre';
+				case 9: return 'Octubre';
+				case 10: return 'Noviembre';
+				case 11: return 'Diciembre';
+			}
+		}
+		
+		function genera_gantt(div, gantt) {
+			/* variables */
+			var ini;
+			var fin;
+			var desp;
+			
+			$('#'+div).empty();
+			$('#'+div).html('<table id="table_gantt" class="table table_gantt" style="table-layout:fixed"></table>');
+			$('#table_gantt').html('<thead><tr id="fechas_gantt"></tr></thead><tbody id="task_gantt"></tbody>');
+			
+			ini = null;
+			ini_str = '';
+			fin = null;
+			fin_str = '';
+			
+			for (i in gantt) {
+				tarea = gantt[i];
+				f = fec(tarea.start);
+				f2 = fec(tarea.end);
+				
+				if (ini == null) {
+					ini = f;
+					ini_str = tarea.start;
+				} else {
+					if (f < ini) {
+						ini = f;
+						ini_str = tarea.start;
+					}
+				}
+						
+				if (fin == null) {
+					fin = f2;
+					fin_str = tarea.end;
+				} else {
+					if (f2 > fin) {
+						fin = f2;
+						fin_str = tarea.end;
+					}
+				}
+			}	
+			
+			desp = false;
+			$('#fechas_gantt').append('<th style="width:200px"></th>');
+			$('#task_gantt').append('<td class="td_gantt"></td>');
+			while (ini <= fin) {
+				if ((!desp) || ((ini.getDate()) == 1))
+					$('#fechas_gantt').append('<th class="fec_titulo" style="width:50px">'+mes(ini.getMonth())+'</th>');
+				else
+					$('#fechas_gantt').append('<th style="width:50px"></th>');
+				
+				$('#task_gantt').append('<td>'+ini.getDate()+'</td>');
+				
+				ini.setTime(ini.getTime()+(24*60*60*1000));
+				desp = true;
+			}
+			
+			strip = 1;
+			for (i in gantt) {
+				ini = fec(ini_str);
+				fin = fec(fin_str);
+				ini_task = fec(gantt[i].start);
+				fin_task = fec(gantt[i].end);
+				$('#task_gantt').append('<tr id="row'+i+'"></tr>');
+				
+				bar = strip++%2;
+				if (bar)
+					$('#row'+i).append('<td class="strip td_gantt">'+gantt[i].title+'</td>');
+				else
+					$('#row'+i).append('<td>'+gantt[i].title+'</td>');
+					
+				while (ini <= fin) {
+					if (bar)
+						if ((ini >= ini_task) && (fin_task >= ini))
+							$('#row'+i).append('<td class="td_gantt strip day"><div></div></td>');
+						else
+							$('#row'+i).append('<td class="td_gantt strip"></td>');
+					else
+						if ((ini >= ini_task && fin_task >= ini))
+							$('#row'+i).append('<td class="td_gantt day"><div></div></td>');
+						else
+							$('#row'+i).append('<td class="td_gantt"></td>');
+					ini.setTime(ini.getTime()+(24*60*60*1000));
+				}				
+			}
+			
+		}
+		
+		genera_gantt('gantt', gantt);
+		
+		
+	</script>
+	
+</div>
+
+</body>
+</html>
